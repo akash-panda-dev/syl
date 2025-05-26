@@ -7,27 +7,28 @@
 
 ## Phase 1: Foundation (Direct Anthropic Integration)
 
-### 1.1 Dependencies & Setup ⏳
-- [ ] Add `reqwest = { version = "0.12", features = ["json", "stream"] }` to Cargo.toml
-- [ ] Add `serde = { version = "1.0", features = ["derive"] }` to Cargo.toml  
-- [ ] Add `serde_json = "1.0"` to Cargo.toml
-- [ ] Add `tokio = { version = "1.0", features = ["rt-multi-thread", "macros"] }` to Cargo.toml
-- [ ] Add `anyhow = "1.0"` to Cargo.toml
-- [ ] Add `dotenvy = "0.15"` to Cargo.toml
-- [ ] Test `cargo build` succeeds
+### 1.1 Dependencies & Setup
+- [x] Add `reqwest = { version = "0.12", features = ["json", "stream"] }` to Cargo.toml
+- [x] Add `serde = { version = "1.0", features = ["derive"] }` to Cargo.toml  
+- [x] Add `serde_json = "1.0"` to Cargo.toml
+- [x] Add `tokio = { version = "1.0", features = ["rt-multi-thread", "macros"] }` to Cargo.toml
+- [x] Add `anyhow = "1.0"` to Cargo.toml
+- [x] Add `dotenvy = "0.15"` to Cargo.toml
+- [x] Test `cargo build` succeeds
 
-### 1.2 Environment & Configuration ⏳
-- [ ] Create environment variable loading for `ANTHROPIC_API_KEY`
-- [ ] Add optional `ANTHROPIC_API_VERSION` (default: "2023-06-01")
-- [ ] Add error handling for missing API key
-- [ ] Test environment loading with `.env` file
+### 1.2 Environment & Configuration
+- [x] Create environment variable loading for `ANTHROPIC_API_KEY`
+- [x] Add optional `ANTHROPIC_API_VERSION` (default: "2023-06-01")
+- [x] Add error handling for missing API key
+- [x] Test environment loading with `.env` file
 
-### 1.3 Core Data Structures ⏳
-- [ ] Create `ChatMessage` struct with `role: String, content: String`
-- [ ] Create `MessageRequest` struct (model, max_tokens, messages, tools?, stream?)
-- [ ] Create `MessageResponse` struct for API responses
-- [ ] Add `#[derive(Serialize, Deserialize)]` to structs
-- [ ] Test JSON serialization/deserialization
+### 1.3 Core Data Structures ✅
+- [x] Create `ChatMessage` struct in `src/anthropic.rs`
+- [x] Create `MessageRequest` struct (model, max_tokens, messages, tools?, stream?)
+- [x] Create `MessageResponse` struct for API responses
+- [x] Add `#[derive(Serialize, Deserialize)]` to structs
+- [x] Test JSON serialization/deserialization
+- [x] Organize code into modules (`src/lib.rs`, `src/anthropic.rs`)
 
 ### 1.4 HTTP Client Setup ⏳
 - [ ] Create `reqwest::Client` with required headers:
