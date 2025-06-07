@@ -2,49 +2,27 @@
 
 ## Project Overview
 
-**Goal**: Build a code-editing agent in Rust that replicates the functionality described in [this blog post](https://ampcode.com/how-to-build-an-agent) by Thorsten Ball.
+**Goal**: Build a ~400 line code-editing agent in Rust replicating [this blog post](https://ampcode.com/how-to-build-an-agent).
 
-**Core Concept**: An LLM with access to tools (read_file, list_files, edit_file) that can interact with the local filesystem to understand and modify code.
+**Core Concept**: LLM + tools (read_file, list_files, edit_file) + conversation loop.
 
-## Architecture Decisions
+## Implementation Strategy
 
-### LLM Integration Strategy
-- **Phase 1**: Direct HTTP client (`reqwest` + `serde`) for Anthropic API
-- **Phase 2**: Abstract behind `LlmClient` trait for multi-provider support
-- **Future**: Add OpenAI-compatible endpoints (OpenAI, Mistral, Groq, OpenRouter, Ollama)
+**Philosophy**: Simple direct implementation first, abstractions later. Follow blog exactly.
 
-### Key Design Principles
-1. Start simple with explicit HTTP calls before abstracting
-2. Use trait-based architecture for provider flexibility
-3. Prioritize string replacement for file editing (Claude 3.7 Sonnet preference)
-4. Maintain conversation state locally (stateless server)
-
-## Current Status
-
-**Current Phase**: Phase 1.4 (HTTP Client Setup) - READY TO START
-**Completed**: Phase 1.1-1.3 (Dependencies, Environment, Core Data Structures)
-**Next Steps**: Implement reqwest HTTP client with Anthropic API headers
-
-### Progress Summary
-- ✅ Phase 1.1: Dependencies & Setup 
-- ✅ Phase 1.2: Environment & Configuration
-- ✅ Phase 1.3: Core Data Structures + Code Organization
-- ⏳ Phase 1.4: HTTP Client Setup (NEXT)
-
-### Code Organization Status
-```
-src/
-├── main.rs        - CLI interface, environment loading
-├── lib.rs         - Library exports  
-└── anthropic.rs   - Anthropic types, tests, future HTTP client
-```
+### Current Phase: Phase 3 (Tool System)
+- ✅ **Phase 1**: Foundation (HTTP client working)
+- ✅ **Phase 2**: Basic Chat Interface (Agent struct + conversation loop)
+- 🔄 **Phase 3**: Tool System + read_file
+- 🔄 **Phase 4**: Add list_files  
+- 🔄 **Phase 5**: Add edit_file
+- 🔄 **Phase 6**: Polish & abstractions
 
 ## Technical Stack
 
-### Core Dependencies
 ```toml
 [dependencies]
-reqwest = { version = "0.12", features = ["json", "stream"] }
+reqwest = { version = "0.12", features = ["json"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tokio = { version = "1.0", features = ["rt-multi-thread", "macros"] }
@@ -52,82 +30,58 @@ anyhow = "1.0"
 dotenvy = "0.15"
 ```
 
-### Environment Variables
-- `ANTHROPIC_API_KEY` (required)
-- `ANTHROPIC_API_VERSION` (optional, default: "2023-06-01")
+**Environment**: `ANTHROPIC_API_KEY` (required)
 
-## Core Tools to Implement
-
-1. **read_file**: Read contents of files
-2. **list_files**: List files and directories  
-3. **edit_file**: Edit files via string replacement
-
-## Key Implementation Files
-
-- `src/main.rs` - CLI interface, environment loading, agent loop
-- `src/lib.rs` - Library crate exports
-- `src/anthropic.rs` - Anthropic API types, HTTP client, tests
-- `src/traits.rs` - LlmClient trait definition (Phase 2)
-- `src/tools/` - Tool implementations (Phase 3)
-
-## Documentation Structure
+## Code Organization
 
 ```
-docs/
-├── planning/
-│   ├── connect_to_models.md - LLM connectivity strategy
-│   └── how_to_build_an_agent.md - Reference blog post
-└── implementation/
-    └── checklist.md - Granular implementation steps
+src/
+├── main.rs        - Agent usage, stdin handling
+├── lib.rs         - Library exports  
+├── anthropic.rs   - API types, AnthropicClient
+└── agent.rs       - Agent struct, conversation loop
 ```
 
-## References
+## Current Implementation Status
 
-- [Original blog post](https://ampcode.com/how-to-build-an-agent) - Go implementation reference
-- [Anthropic API docs](https://docs.anthropic.com/en/api/overview) - API reference
-- [Messages endpoint](https://docs.anthropic.com/en/api/messages-examples) - Tool calling examples
+### Phase 1 Complete ✅
+- AnthropicClient with proper headers working
+- Basic API connectivity tested
+- Environment loading functional
+
+### Phase 2 Complete ✅
+- `Agent<F>` struct with generic input reader: `F: Fn() -> Option<String>`
+- Conversation loop: user input → LLM → response → repeat
+- Colored terminal output: `\u{001b}[94mYou\u{001b}[0m:`, `\u{001b}[93mClaude\u{001b}[0m:`
+- Conversation state: `Vec<ChatMessage>` (stateless server pattern)
+- MessageRequest::from_messages() factory method
+
+### Phase 3 Next Steps ⏳
+- ToolDefinition struct, execute_tool method, read_file tool
+
+### Future Phases 🔄
+- **Phase 3**: ToolDefinition struct, execute_tool method, read_file tool
+- **Phase 4**: list_files tool (JSON array, "/" suffix for directories)
+- **Phase 5**: edit_file tool (string replacement)
+- **Phase 6**: LlmClient trait, multi-provider support, streaming, retry logic
 
 ## Development Commands
 
 ```bash
-# Run the agent
-cargo run
-
-# Run tests
-cargo test
-
-# Check formatting
-cargo fmt
-
-# Run linter
-cargo clippy
+cargo run     # Run agent
+cargo test    # Run tests  
+cargo clippy  # Rust linter
+cargo fmt     # Format code
 ```
 
-## Notes for Claude
+## Collaboration Guidelines
 
-- This project replicates a ~400 line Go agent in Rust
-- Focus on simplicity first, then add abstraction layers
-- String replacement editing works well with Claude 3.7 Sonnet
-- Agent loop: user input → LLM → tool execution → response → repeat
-- Always test with actual file operations to verify functionality
+**Role**: Peer programming guidance, code review, architecture decisions  
+**Philosophy**: "The Philosophy of Software Design" principles
+**Key Principle**: Always guide toward Rust-idiomatic implementations
 
-## Implementation Notes
+## References
 
-### Phase 1.3 Completed
-- All Anthropic API types implemented in `src/anthropic.rs`
-- JSON serialization/deserialization tested and working
-- Code organized into proper module structure
-- Latest Claude 4 model names included
-
-### Phase 1.4 Next Steps
-- Add `AnthropicClient` struct to `src/anthropic.rs`
-- Implement reqwest HTTP client with headers:
-  - `x-api-key: $ANTHROPIC_API_KEY`
-  - `anthropic-version: 2023-06-01` 
-  - `content-type: application/json`
-- Test basic API connectivity
-
-### Future Extensibility
-- Phase 2 will add `LlmClient` trait for multi-provider support
-- Generic message types can be added later via trait abstraction
-- Current Anthropic-specific implementation enables rapid iteration
+- [Original blog post](https://ampcode.com/how-to-build-an-agent) - Go reference implementation
+- [Anthropic API docs](https://docs.anthropic.com/en/api/messages-examples) - Tool calling examples
+- Implementation checklist: `docs/implementation/checklist.md`
